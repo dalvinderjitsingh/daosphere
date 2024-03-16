@@ -1,4 +1,4 @@
-import LandingPageNav from "@/components/nav/LandingPageNav";
+import Nav from "@/components/nav/Nav";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
 import UserSignUpForm from "@/components/UserSignUpForm";
@@ -6,7 +6,7 @@ import UserSignUpForm from "@/components/UserSignUpForm";
 export default function Home() {
   return (
     <div className="">
-      <LandingPageNav />
+      <Nav />
       <main className="grid h-screen place-items-center">
         <div className="flex flex-col items-center gap-y-6">
           <h1 className="text-5xl font-black">DATA DAO SPACE</h1>
