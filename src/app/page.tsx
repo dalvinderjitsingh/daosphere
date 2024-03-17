@@ -1,7 +1,6 @@
 import Nav from "@/components/nav/Nav";
 import { Button } from "@/components/ui/button";
 import Image from "next/image";
-import UserSignUpForm from "@/components/UserSignUpForm";
 
 export default function Home() {
   return (
@@ -13,8 +12,6 @@ export default function Home() {
           <p className="text-3xl font-light text-zinc-600">
             The next level DataDao SaaS and much more.
           </p>
-          <br />
-          <UserSignUpForm />
         </div>
       </main>
     </div>
