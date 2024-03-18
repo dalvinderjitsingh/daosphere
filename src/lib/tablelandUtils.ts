@@ -1,33 +1,36 @@
+"use server";
+
 import { Database } from "@tableland/sdk";
 import { Wallet, getDefaultProvider } from "ethers";
 // import * as dotenv from "dotenv";
 // dotenv.config();
 // import {} from "dotenv/config";
 
-function setupWallet() {
-  if (process.env.PRIVATE_KEY !== undefined) {
-    console.log("Wallet set up " + process.env.PRIVATE_KEY);
-    return new Wallet(process.env.PRIVATE_KEY);
-  }
-}
+// function setupWallet() {
+//   if (process.env.PRIVATE_KEY !== undefined) {
+//     console.log("Wallet set up " + process.env.PRIVATE_KEY);
+//     return new Wallet(process.env.PRIVATE_KEY);
+//   }
+// }
 
-const wallet = setupWallet();
+// const wallet = setupWallet();
 
-// const wallet = new Wallet(process.env.PRIVATE_KEY);
+const wallet = new Wallet(
+  process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "fuck",
+);
 
 const provider = getDefaultProvider("https://rpc.ankr.com/filecoin_testnet");
 
-// const signer = wallet.connect(provider);
+const signer = wallet.connect(provider);
 
-function setupSigner() {
-  if (wallet !== undefined) {
-    console.log("Signer set up " + wallet.address);
-    return wallet.connect(provider);
-  }
-}
+// function setupSigner() {
+//   if (wallet !== undefined) {
+//     console.log("Signer set up " + wallet.address);
+//     return wallet.connect(provider);
+//   }
+// }
 
-
-const signer = setupSigner();
+// const signer = setupSigner();
 
 const db = new Database<UserTableSchema>({ signer });
 
@@ -116,5 +119,21 @@ export async function getUserByWalletAddress(
   } catch (err: any) {
     console.error(err.message);
     return null;
+  }
+}
+
+// deleta minerva
+export async function deleteUser() {
+  try {
+    const { meta: deleteOperation } = await db
+      .prepare(`DELETE FROM ${userTableName} WHERE id = ?;`)
+      .bind(2)
+      .run();
+    await deleteOperation.txn?.wait();
+    console.log(
+      `Successfully deleted user with ID ${2} from table '${userTableName}'`,
+    );
+  } catch (err: any) {
+    console.error(err.message);
   }
 }
