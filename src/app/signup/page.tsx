@@ -25,6 +25,7 @@ export default function Page() {
           if (user && user.wallet_address == address) {
             // User exists, handle accordingly
             router.push("/");
+            // setIsLoading(false); DELETE THIS
           } else {
             // User does not exist, handle accordingly
             setIsLoading(false);
