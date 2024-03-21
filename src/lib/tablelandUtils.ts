@@ -15,6 +15,32 @@ import { Wallet, getDefaultProvider } from "ethers";
 
 // const wallet = setupWallet();
 
+// async function apiwallet() {
+//   try {
+//     const response = await fetch("/api", {
+//       method: "GET",
+//       headers: {
+//         "Content-Type": "application/json",
+//       },
+//     });
+
+//     const data = await response.json();
+//     if (response.ok) {
+//       console.log(data.message);
+//       return data;
+//       // Reset form fields or show a success message
+//     } else {
+//       console.error("first error: " + data.error);
+//       // Show an error message
+//     }
+//   } catch (error) {
+//     console.error("second error: " + error);
+//     // Show an error message
+//   }
+// }
+
+// const wallet = apiwallet();
+
 const wallet = new Wallet(
   process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "fuck",
 );
