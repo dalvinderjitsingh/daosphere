@@ -15,7 +15,8 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { writeUserTable } from "@/lib/tablelandUtils";
+// import { writeUserTable, deleteUser } from "@/lib/tablelandUtils";
+// import { writeUserTable } from '@/app/api/tableland/userTable/route';
 import { useAccount } from "wagmi";
 
 const userFormSchema = z.object({
@@ -46,10 +47,50 @@ export default function UserSignUpForm() {
     console.log(values);
 
     // here i need to submit it to tableand
+    // if (isConnected && address !== undefined) {
+    //   await writeUserTable(values.name, values.username, address);
+    //   console.log("user created on tableland");
+    // }
+
+    // if (isConnected && address !== undefined) {
+    //   await deleteUser();
+    //   console.log("user deleted from tableland");
+    // }
+
+    // API style:
+
     if (isConnected && address !== undefined) {
-      await writeUserTable(values.name, values.username, address);
-      console.log("user created on tableland");
+      const name = values.name;
+      const username = values.username;
+      const walletAddress = address;
+
+      console.log(name, username, walletAddress);
+
+      try {
+        const response = await fetch("/api/tableland/userTable", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ name, username, walletAddress }),
+        });
+
+        const data = await response.json();
+        if (response.ok) {
+          console.log(data.message);
+          // Reset form fields or show a success message
+        } else {
+          console.error("first error: " + data.error);
+          // Show an error message
+        }
+      } catch (error) {
+        console.error("second error: " + error);
+        // Show an error message
+      }
     }
+
+    // AFTER the above i should iether show an idicator as to what happened meaning it was a success or not or redirect to home page
+    // and wait for the confirmation in the background and either choose to show or now, also might need to save form input into state and pass it to homepage
   }
 
   return (
