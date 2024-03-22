@@ -42,7 +42,7 @@ import { Wallet, getDefaultProvider } from "ethers";
 // const wallet = apiwallet();
 
 const wallet = new Wallet(
-  process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "fuck",
+  process.env.PRIVATE_KEY !== undefined ? process.env.PRIVATE_KEY : "prob",
 );
 
 const provider = getDefaultProvider("https://rpc.ankr.com/filecoin_testnet");
