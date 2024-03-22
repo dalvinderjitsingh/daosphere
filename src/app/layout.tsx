@@ -2,6 +2,8 @@ import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "../styles/globals.css";
 import { Web3Provider } from "../components/Web3Provider";
+import { Analytics } from "@vercel/analytics/react";
+import { SpeedInsights } from "@vercel/speed-insights/next";
 
 const inter = Inter({ subsets: ["latin"] });
 
@@ -18,7 +20,11 @@ export default function RootLayout({
   return (
     <html lang="en">
       <body className={inter.className}>
-        <Web3Provider>{children}</Web3Provider>
+        <Web3Provider>
+          {children}
+          <Analytics />
+          <SpeedInsights />
+        </Web3Provider>
       </body>
     </html>
   );
