@@ -29,16 +29,14 @@ export default function Nav() {
     const checkUser = async () => {
       if (isConnected) {
         if (address !== undefined) {
+
           let user = await getUserByWalletAddress(address);
           if (user && user.wallet_address == address) {
             // User exists, handle accordingly
-            router.push("/dashboard");
+            // router.push("/dashboard");
           } else {
             // User does not exist, handle accordingly
             router.push("/signup");
-            // console.log(user);
-            // console.log(address);
-            // console.log(user && user.wallet_address);
           }
         }
       }
@@ -46,6 +44,10 @@ export default function Nav() {
 
     checkUser();
   }, [isConnected, address, router]);
+
+
+  // create user table
+  // check if wallet has been registered if yes, route to dashboard, if not, route to signup
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50">
