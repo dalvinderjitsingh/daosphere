@@ -1,5 +1,9 @@
 "use client";
 
+console.log(
+  "MAIN THING BRO, THE SCHEMA CAN ONLY HAVE THINGS THAT THERE WILL BE INPUT FOR SO WALLET ADDRESS WILL NOT BE IN SCHEMA",
+);
+
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -15,25 +19,21 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-// import { writeUserTable, deleteUser } from "@/lib/tablelandUtils";
-// import { writeUserTable } from '@/app/api/tableland/userTable/route';
+import { formUserSchema } from "@/lib/validators/formUserSchema";
+import { userSchema } from "@/lib/validators/userSchema";
+import { walletSchema } from "@/lib/validators/walletSchema";
 import { useAccount } from "wagmi";
-
-const userFormSchema = z.object({
-  name: z.string().min(2, {
-    message: "Username must be at least 2 characters.",
-  }),
-  username: z.string().min(3, {
-    message: "Username must be at least 2 characters.",
-  }),
-});
+import ethers from "ethers";
+import { sql } from "@vercel/postgres";
+import { NextResponse, NextRequest } from "next/server";
+import { addNewUser, checkUsernameAvailability } from "@/lib/db/utils";
 
 export default function UserSignUpForm() {
   const { isConnected, address, isConnecting } = useAccount();
 
   // 1. Define your form.
-  const form = useForm<z.infer<typeof userFormSchema>>({
-    resolver: zodResolver(userFormSchema),
+  const form = useForm<z.infer<typeof userSchema>>({
+    resolver: zodResolver(userSchema),
     defaultValues: {
       name: "",
       username: "",
@@ -41,53 +41,75 @@ export default function UserSignUpForm() {
   });
 
   // 2. Define a submit handler.
-  async function onSubmit(values: z.infer<typeof userFormSchema>) {
+  async function onSubmit(values: z.infer<typeof userSchema>) {
+    console.log("submitting");
     // Do something with the form values.
     // ✅ This will be type-safe and validated.
     console.log(values);
 
-    // here i need to submit it to tableand
-    // if (isConnected && address !== undefined) {
-    //   await writeUserTable(values.name, values.username, address);
-    //   console.log("user created on tableland");
-    // }
-
-    // if (isConnected && address !== undefined) {
-    //   await deleteUser();
-    //   console.log("user deleted from tableland");
-    // }
-
-    // API style:
-
     if (isConnected && address !== undefined) {
-      const name = values.name;
-      const username = values.username;
-      const walletAddress = address;
+      // Perform client-side validation with Zod
+      const validatedData = userSchema.parse({
+        name: values.name,
+        username: values.username,
+      });
+      const { name, username } = validatedData;
+      console.log("name, username: " + name + " " + username);
 
-      console.log(name, username, walletAddress);
+      // const validatedWallet = walletSchema.parse({
+      //   walletAddress: address,
+      // });
+      // const { walletAddress } = validatedWallet;
+      // console.log("walletAddress: " + walletAddress);
+
+      let walletAddress = "";
 
       try {
-        const response = await fetch("/api/tableland/userTable", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({ name, username, walletAddress }),
+        const validatedWallet = await walletSchema.parseAsync({
+          walletAddress: address,
         });
-
-        const data = await response.json();
-        if (response.ok) {
-          console.log(data.message);
-          // Reset form fields or show a success message
-        } else {
-          console.error("first error: " + data.error);
-          // Show an error message
-        }
+        // Assign the validated wallet address to the variable declared outside the try block
+        walletAddress = validatedWallet.walletAddress;
+        console.log("Validated wallet address:", walletAddress);
+        // Proceed with the rest of your form submission logic
       } catch (error) {
-        console.error("second error: " + error);
-        // Show an error message
+        console.error("Validation error:", error);
+        // Handle the validation error, e.g., show an error message to the user
+      }
+
+      // // commenting out here till......
+      // // Check if the username already exists in the database
+      // if (!checkUsernameAvailability(username)) {
+      //   // Username already exists, return an error response
+      //   // setError("username", {
+      //   //   type: "manual",
+      //   //   message: "Username already exists",
+      //   // });
+      //   console.log(username + " already exists");
+      //   return; // Prevent form submission
+      // }
+
+      console.log("error check 1");
+
+      // if wallet schema works then this can be deleted
+      // // Check if the wallet address is valid
+      // if (!ethers.utils.isAddress(wallet_address)) {
+      //   // Invalid wallet address, return an error response
+      //   console.log("error with wallet address");
+      //   return;
+      // }
+      console.log("error check 2");
+
+      const result = await addNewUser(name, username, walletAddress);
+
+      if (result) {
+        console.log("user created on postgres!! Yahooooo!!!!! Cool!!!!");
+      } else {
+        console.log("error creating user on postgres");
       }
     }
+
+    console.log("error check 3");
 
     // AFTER the above i should iether show an idicator as to what happened meaning it was a success or not or redirect to home page
     // and wait for the confirmation in the background and either choose to show or now, also might need to save form input into state and pass it to homepage
@@ -125,7 +147,7 @@ export default function UserSignUpForm() {
                 <FormDescription>
                   This is your public display username.
                 </FormDescription>
-                <FormMessage />
+                <FormMessage className="text-wrap" />
               </FormItem>
             )}
           />
