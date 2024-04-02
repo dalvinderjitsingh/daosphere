@@ -5,7 +5,7 @@ import UserSignUpForm from "@/components/UserSignUpForm";
 import React, { useState, useEffect } from "react";
 import { ConnectKitButton, useModal } from "connectkit";
 import { useAccount, useDisconnect } from "wagmi";
-import { getUserByWalletAddress } from "@/lib/tablelandUtils";
+import { isWalletAddressAvailable } from "@/lib/db/utils";
 
 export default function Page() {
   const router = useRouter();
@@ -21,18 +21,21 @@ export default function Page() {
     const checkUser = async () => {
       if (isConnected) {
         if (address !== undefined) {
-          let user = await getUserByWalletAddress(address);
-          if (user && user.wallet_address == address) {
-            // User exists, handle accordingly
-            router.push("/");
-            // setIsLoading(false); DELETE THIS
+          const isAvailable = await isWalletAddressAvailable(address);
+          if (isAvailable) {
+            // wallet address exists, handle accordingly
+            console.log("Wallet address already exist in users table");
+            router.push("/dashboard");
           } else {
-            // User does not exist, handle accordingly
+            // wallet address does not exist, handle accordingly
+            console.log("Wallet address does not exist in users table");
             setIsLoading(false);
           }
         }
       } else {
-        router.push("/");
+        // router.push("/");
+        // delete below and enable above
+        setIsLoading(false);
       }
     };
 
@@ -44,9 +47,9 @@ export default function Page() {
       {isLoading ? (
         <h1>Loading...</h1>
       ) : (
-        <div>
+        <div className="max-w-[410px]">
           {/* make it center */}
-          <div className="flex flex-col items-center gap-y-5">
+          <div className="flex max-w-prose flex-col items-center gap-y-5">
             <img alt="" className="w-24" src="../favicon.ico" />
             <h1 className="text-2xl font-bold">Sign up</h1>
             <h2>Fill in the form below to finish setting up your account.</h2>
