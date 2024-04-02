@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { ConnectKitButton, useModal } from "connectkit";
 import { useAccount, useDisconnect } from "wagmi";
 import { getUserByWalletAddress } from "@/lib/tablelandUtils";
+import { isWalletAddressAvailable } from "@/lib/db/utils";
 
 export default function Nav() {
   const router = useRouter();
@@ -15,27 +16,20 @@ export default function Nav() {
   const { openProfile, open } = useModal();
   const { isConnected, address, isConnecting } = useAccount();
 
-  useEffect(() => {
-    if (isConnected) {
-      // check if user has been inserted into user table
-      // if not, present sign up modal and insert user into user table
-      // if yes, route to home/dashboard
-    }
-  }, [isConnected]);
-
   // instead of isCOnnected i would like to use On COnnect, i dunno but feels as thou would be faster
 
   useEffect(() => {
     const checkUser = async () => {
       if (isConnected) {
         if (address !== undefined) {
-
-          let user = await getUserByWalletAddress(address);
-          if (user && user.wallet_address == address) {
-            // User exists, handle accordingly
-            // router.push("/dashboard");
+          const isAvailable = await isWalletAddressAvailable(address);
+          if (isAvailable) {
+            // wallet address exists, handle accordingly
+            console.log("Wallet address already exist in users table");
+            router.push("/dashboard");
           } else {
-            // User does not exist, handle accordingly
+            // wallet address does not exist, handle accordingly
+            console.log("Wallet address does not exist in users table");
             router.push("/signup");
           }
         }
@@ -44,10 +38,6 @@ export default function Nav() {
 
     checkUser();
   }, [isConnected, address, router]);
-
-
-  // create user table
-  // check if wallet has been registered if yes, route to dashboard, if not, route to signup
 
   return (
     <nav className="fixed left-0 right-0 top-0 z-50">
