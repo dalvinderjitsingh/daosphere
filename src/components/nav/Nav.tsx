@@ -7,16 +7,11 @@ import { useRouter } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { ConnectKitButton, useModal } from "connectkit";
 import { useAccount, useDisconnect } from "wagmi";
-import { getUserByWalletAddress } from "@/lib/tablelandUtils";
 import { isWalletAddressAvailable } from "@/lib/db/utils";
 
 export default function Nav() {
   const router = useRouter();
-
-  const { openProfile, open } = useModal();
-  const { isConnected, address, isConnecting } = useAccount();
-
-  // instead of isCOnnected i would like to use On COnnect, i dunno but feels as thou would be faster
+  const { isConnected, address } = useAccount();
 
   useEffect(() => {
     const checkUser = async () => {
@@ -25,11 +20,9 @@ export default function Nav() {
           const isAvailable = await isWalletAddressAvailable(address);
           if (isAvailable) {
             // wallet address exists, handle accordingly
-            console.log("Wallet address already exist in users table");
             router.push("/dashboard");
           } else {
             // wallet address does not exist, handle accordingly
-            console.log("Wallet address does not exist in users table");
             router.push("/signup");
           }
         }
