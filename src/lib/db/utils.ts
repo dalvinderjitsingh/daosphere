@@ -2,7 +2,7 @@
 export async function isWalletAddressAvailable(walletAddress: string) {
   try {
     const response = await fetch(
-      `/api/users/check-wallet-address?walletAddress=${walletAddress}`,
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/check-wallet-address?walletAddress=${walletAddress}`,
     );
 
     const data = await response.json();
@@ -31,6 +31,26 @@ export async function isWalletAddressAvailable(walletAddress: string) {
   }
 }
 
+// check if a username exist in the table
+export async function checkUsernameExists(username: string) {
+  try {
+    const response = await fetch(
+      `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/check-username?username=${username}`,
+    );
+    const data = await response.json();
+    if (response.status === 200) {
+      // username exist, return true
+      return true;
+    } else if (response.status === 409) {
+      // username does not exist, return false
+      return false;
+    }
+  } catch (error) {
+    console.error("Error checking username availability:", error);
+    return false;
+  }
+}
+
 // add new user to users table
 export async function addNewUser(
   name: string,
@@ -39,7 +59,6 @@ export async function addNewUser(
 ) {
   {
     try {
-      console.log("addnewuser error 1");
       const response = await fetch(
         `${process.env.NEXT_PUBLIC_BASE_URL}/api/users/add-user`,
         {
@@ -50,28 +69,21 @@ export async function addNewUser(
           body: JSON.stringify({ name, username, wallet_address }),
         },
       );
-      console.log("addnewuser error 2");
 
       const data = await response.json();
 
       if (!response.ok) {
-        console.log("addnewuser error 3");
-
         // Show an error message
         console.error("Error: " + data.error);
         throw new Error(data.error || "An error occurred");
-        console.log("addnewuser error 4");
       }
 
       // Reset form fields or show a success message
       console.log(data.message);
-      console.log("user created on postgres!! Yahooooo!!!!! Cool!!!!");
-      console.log("addnewuser error 5");
+      console.log("Sucess: User added");
 
       return true;
     } catch (error: any) {
-      console.log("addnewuser error 6");
-
       // Show an error message
       console.error("Error: " + error.message);
 
@@ -82,22 +94,5 @@ export async function addNewUser(
         console.error("Server-side error:", error.message);
       }
     }
-  }
-}
-// check if a username is available
-export async function checkUsernameAvailability(username: string) {
-  try {
-    const response = await fetch(`/api/check-username?username=${username}`);
-    const data = await response.json();
-    if (response.status === 200) {
-      // username does not exist, return true
-      return true;
-    } else if (response.status === 409) {
-      // username already exist, throw error
-      return false;
-    }
-  } catch (error) {
-    console.error("Error checking username availability:", error);
-    return false;
   }
 }
