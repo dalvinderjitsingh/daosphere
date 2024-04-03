@@ -13,5 +13,4 @@ export const userSchema = z.object({
       /^[a-zA-Z0-9_]+$/,
       "Username can only contain alphanumeric characters and underscores",
     ),
-  // wallet_address: z.string(),
 });
