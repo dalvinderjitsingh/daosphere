@@ -1,9 +1,5 @@
 "use client";
 
-console.log(
-  "MAIN THING BRO, THE SCHEMA CAN ONLY HAVE THINGS THAT THERE WILL BE INPUT FOR SO WALLET ADDRESS WILL NOT BE IN SCHEMA",
-);
-
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { z } from "zod";
@@ -19,17 +15,16 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { formUserSchema } from "@/lib/validators/formUserSchema";
+
 import { userSchema } from "@/lib/validators/userSchema";
-import { walletSchema } from "@/lib/validators/walletSchema";
 import { useAccount } from "wagmi";
-import ethers from "ethers";
-import { sql } from "@vercel/postgres";
-import { NextResponse, NextRequest } from "next/server";
-import { addNewUser, checkUsernameAvailability } from "@/lib/db/utils";
+import { ethers } from "ethers";
+import { addNewUser, checkUsernameExists } from "@/lib/db/utils";
+import { useRouter } from "next/navigation";
 
 export default function UserSignUpForm() {
   const { isConnected, address, isConnecting } = useAccount();
+  const router = useRouter();
 
   // 1. Define your form.
   const form = useForm<z.infer<typeof userSchema>>({
@@ -40,6 +35,15 @@ export default function UserSignUpForm() {
     },
   });
 
+  // Access form methods and properties using the form variable
+  const {
+    register,
+    handleSubmit,
+    setError,
+    formState: { errors },
+    trigger,
+  } = form;
+
   // 2. Define a submit handler.
   async function onSubmit(values: z.infer<typeof userSchema>) {
     console.log("submitting");
@@ -47,72 +51,51 @@ export default function UserSignUpForm() {
     // ✅ This will be type-safe and validated.
     console.log(values);
 
-    if (isConnected && address !== undefined) {
-      // Perform client-side validation with Zod
-      const validatedData = userSchema.parse({
-        name: values.name,
-        username: values.username,
-      });
-      const { name, username } = validatedData;
-      console.log("name, username: " + name + " " + username);
-
-      // const validatedWallet = walletSchema.parse({
-      //   walletAddress: address,
-      // });
-      // const { walletAddress } = validatedWallet;
-      // console.log("walletAddress: " + walletAddress);
-
-      let walletAddress = "";
-
-      try {
-        const validatedWallet = await walletSchema.parseAsync({
-          walletAddress: address,
+    try {
+      if (isConnected && address !== undefined) {
+        // Perform client-side validation with Zod
+        const validatedData = await userSchema.parse({
+          name: values.name,
+          username: values.username,
         });
-        // Assign the validated wallet address to the variable declared outside the try block
-        walletAddress = validatedWallet.walletAddress;
-        console.log("Validated wallet address:", walletAddress);
-        // Proceed with the rest of your form submission logic
-      } catch (error) {
-        console.error("Validation error:", error);
-        // Handle the validation error, e.g., show an error message to the user
+        const { name, username } = validatedData;
+        console.log("Validated name, username: " + name + " " + username);
+
+        // // Check if the username already exists in the database
+        const usernameExist = await checkUsernameExists(username);
+        if (usernameExist === true) {
+          // Username already exists, return an error responses
+          setError("username", {
+            type: "manual",
+            message: "Username already exists",
+          });
+          console.log("Error: Username '" + username + "' already exists");
+          return; // Prevent form submission
+        }
+
+        const result = await addNewUser(name, username, address);
+        if (result) {
+          console.log("Sucess: User created on postgres");
+          // wait 5 second then route to dashboard
+          setTimeout(() => {
+            router.push("/dashboard");
+          }, 2000);
+        } else {
+          console.log("Error creating user on postgres");
+        }
       }
 
-      // // commenting out here till......
-      // // Check if the username already exists in the database
-      // if (!checkUsernameAvailability(username)) {
-      //   // Username already exists, return an error response
-      //   // setError("username", {
-      //   //   type: "manual",
-      //   //   message: "Username already exists",
-      //   // });
-      //   console.log(username + " already exists");
-      //   return; // Prevent form submission
-      // }
-
-      console.log("error check 1");
-
-      // if wallet schema works then this can be deleted
-      // // Check if the wallet address is valid
-      // if (!ethers.utils.isAddress(wallet_address)) {
-      //   // Invalid wallet address, return an error response
-      //   console.log("error with wallet address");
-      //   return;
-      // }
-      console.log("error check 2");
-
-      const result = await addNewUser(name, username, walletAddress);
-
-      if (result) {
-        console.log("user created on postgres!! Yahooooo!!!!! Cool!!!!");
+      // Further logic...
+    } catch (error) {
+      if (error instanceof z.ZodError) {
+        // Handle zod errors
+        console.error("Validation error:", error.errors);
       } else {
-        console.log("error creating user on postgres");
+        // Handle other errors
+        // Handle the error, e.g., show an error message to the user
+        console.error("Error during form submission:", error);
       }
     }
-
-    console.log("error check 3");
-
-    // AFTER the above i should iether show an idicator as to what happened meaning it was a success or not or redirect to home page
-    // and wait for the confirmation in the background and either choose to show or now, also might need to save form input into state and pass it to homepage
   }
 
   return (

@@ -1,6 +1,6 @@
 import { z } from "zod";
 import { ethers } from "ethers";
-import { checkUsernameAvailability } from "../db/utils";
+import { checkUsernameExists } from "../db/utils";
 
 export const formUserSchema = z.object({
   name: z
@@ -18,8 +18,8 @@ export const formUserSchema = z.object({
     .refine(
       async (username) => {
         // Make an API call to check if the username already exists in the database
-        // If the username does exist return false
-        const isAvailable = await checkUsernameAvailability(username);
+        // If the username does exist return false else return true
+        const isAvailable = await checkUsernameExists(username);
         return isAvailable;
       },
       {

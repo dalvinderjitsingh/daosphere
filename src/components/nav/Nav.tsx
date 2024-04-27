@@ -20,7 +20,7 @@ export default function Nav() {
           const isAvailable = await isWalletAddressAvailable(address);
           if (isAvailable) {
             // wallet address exists, handle accordingly
-            router.push("/dashboard");
+            // router.push("/dashboard");
           } else {
             // wallet address does not exist, handle accordingly
             router.push("/signup");

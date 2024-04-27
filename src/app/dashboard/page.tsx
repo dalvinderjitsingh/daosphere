@@ -2,13 +2,14 @@ import Nav from "@/components/nav/Nav";
 import React from "react";
 import SideBar from "@/components/SideBar";
 import { Button } from "@/components/ui/button";
+import CreateDataDAOForm from "@/components/CreateDataDAOForm";
 
 export default function page() {
   return (
     <div>
       <Nav />
       {/* <div>needs: sidebar, search bar, discover daos</div> */}
-      <div className="mt-[76px] grid h-[calc(100vh_-_76px)] grid-cols-[minmax(150px,_25%)_1fr]">
+      <div className="mt-[76px] grid h-[calc(100vh_-_76px)] grid-cols-[max-content_1fr]">
         <SideBar />
         <div className="mainPage bg-zinc-300">
           <h1>home page / dashboard</h1> <br />
@@ -34,12 +35,11 @@ export default function page() {
               <p>dao.description</p>
               <Button>View</Button>
             </li>
-            <li>
-              <h2>dao.name</h2>
-              <p>dao.description</p>
-              <Button>View</Button>
-            </li>
           </ul>
+          <br />
+          <div className="form bg-red-100">
+            <CreateDataDAOForm />
+          </div>
         </div>
       </div>
     </div>
